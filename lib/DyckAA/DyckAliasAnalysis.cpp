@@ -229,6 +229,62 @@ void DyckAliasAnalysis::printAliasSetInformation() {
         outs() << "Done!\n";
     }
 
+    // Print the alias relation graph to a cypher file for MemGraphDB
+    {
+        outs() << "Printing alias_rel.cypherl... ";
+        outs().flush();
+
+        FILE *AliasRelCypher = fopen("alias_rel.cypherl", "w");
+
+        std::map<DyckGraphNode *, int> TheMapForCypher;
+        int Idx = 0;
+        std::set<DyckGraphNode *> &Reps = DyckPTG->getVertices();
+        auto RepIt = Reps.begin();
+        while (RepIt != Reps.end()) {
+            Idx++;
+            
+            fprintf(AliasRelCypher, "MERGE (n1:DyckGraphNode {idx: %d, name_to_display:'%d'});\n", Idx, Idx);
+            TheMapForCypher.insert(std::pair<DyckGraphNode *, int>(*RepIt, Idx));
+            RepIt++;
+        }
+
+        RepIt = Reps.begin();
+        while (RepIt != Reps.end()) {
+            DyckGraphNode *DGN = *RepIt;
+            std::map<void *, std::set<DyckGraphNode *>> &OutVs = DGN->getOutVertices();
+
+            auto OvIt = OutVs.begin();
+            while (OvIt != OutVs.end()) {
+                auto *Label = (DyckGraphEdgeLabel *) OvIt->first;
+                std::set<DyckGraphNode *> *oVs = &OvIt->second;
+
+                auto OIt = oVs->begin();
+                while (OIt != oVs->end()) {
+                    DyckGraphNode *Rep1 = DGN;
+                    DyckGraphNode *Rep2 = (*OIt);
+
+                    assert(TheMapForCypher.count(Rep1) && "ERROR in DotAliasSet (1)\n");
+                    assert(TheMapForCypher.count(Rep2) && "ERROR in DotAliasSet (2)\n");
+
+                    int Idx1 = TheMapForCypher[Rep1];
+                    int Idx2 = TheMapForCypher[Rep2];
+                    const char* edge = "MERGE (n1:DyckGraphNode {idx: %d}) MERGE (n2:DyckGraphNode {idx: %d}) MERGE (n1)-[:alias {description: '%s'}]->(n2);\n";
+                    fprintf(AliasRelCypher, edge, Idx1, Idx2, Label->getEdgeLabelDescription().data());
+
+                    OIt++;
+                }
+
+                OvIt++;
+            }
+
+            TheMapForCypher.insert(std::pair<DyckGraphNode *, int>(*RepIt, Idx));
+            RepIt++;
+        }
+
+        fclose(AliasRelCypher);
+        outs() << "Done!\n";
+    }
+
     /*if (OutputAliasSet)*/
     {
         outs() << "Printing alias_sets.log... ";
