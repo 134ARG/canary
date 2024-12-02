@@ -10,6 +10,7 @@ set(LLVM_LINK_COMPONENTS
         LLVMCodeGen
         LLVMCore
         LLVMCoroutines
+        LLVMDebugInfoDWARF
         LLVMDemangle
         LLVMFrontendOpenMP
         LLVMIRReader
@@ -29,6 +30,7 @@ set(LLVM_LINK_COMPONENTS
         LLVMScalarOpts
         LLVMSupport
         LLVMTarget
+        LLVMTextAPI
         LLVMTransformUtils
         LLVMVectorize
         LLVMipo
