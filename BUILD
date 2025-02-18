@@ -1,3 +1,8 @@
+config_setting(
+    name = "dbg",
+    values = {"compilation_mode": "dbg"},
+)
+
 cc_library(
     name = "support",
     srcs = glob([
@@ -25,6 +30,12 @@ cc_library(
     hdrs = glob([
         "include/DyckAA/*.h",
     ]),
+    copts = select(
+        {
+            ":dbg": ["-pg"],
+            "//conditions:default": [],
+        },
+    ),
     defines = [
         "LLVM14",
     ],
