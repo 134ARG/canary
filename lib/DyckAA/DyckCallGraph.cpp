@@ -76,6 +76,12 @@ void DyckCallGraph::dotCallGraph(const std::string &ModuleIdentifier) {
     FWIt = FunctionMap.begin();
     while (FWIt != FunctionMap.end()) {
         DyckCallGraphNode *FW = FWIt->second;
+
+        for (auto it = FW->parent_edge_begin(); it != FW->parent_edge_end(); it++) {
+            DyckCallGraphNode * ParentNode = it->second;
+            fprintf(FOut, "\tf%p->f%p[style=\"dashed\",label=\"%s\"]\n", FW, ParentNode, "backedge"); // print parent edges
+        }
+
         auto CCIt = FW->common_call_begin();
         while (CCIt != FW->common_call_end()) {
             CommonCall *CC = *CCIt;
