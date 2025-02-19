@@ -17,6 +17,7 @@
  */
 
 #include "DyckAA/DyckCallGraph.h"
+#include "DyckAA/DyckCallGraphNode.h"
 
 static cl::opt<bool> WithEdgeLabels("with-labels", cl::init(false), cl::Hidden,
                                     cl::desc("Determine whether there are edge lables in the cg."));
@@ -41,8 +42,10 @@ DyckCallGraphNode *DyckCallGraph::getOrInsertFunction(Function *Func) {
         // The following if-statement is copied from llvm's call graph implementation
         // If this function has external linkage or has its address taken and
         // it is not a callback, then anything could call it.
-        if (Func && (!Func->hasLocalLinkage() || Func->hasAddressTaken(nullptr, /*IgnoreCallbackUses=*/true)))
+        if (Func && (!Func->hasLocalLinkage() || Func->hasAddressTaken(nullptr, /*IgnoreCallbackUses=*/true))) {
             ExternalCallingNode->addCalledFunction(nullptr, Ret);
+            // Ret->addParentsNode(ExternalCallingNode);
+        }
 
         FunctionMap.emplace(Func, Ret);
         return Ret;
@@ -76,6 +79,12 @@ void DyckCallGraph::dotCallGraph(const std::string &ModuleIdentifier) {
     FWIt = FunctionMap.begin();
     while (FWIt != FunctionMap.end()) {
         DyckCallGraphNode *FW = FWIt->second;
+
+        for (auto it = FW->parent_edge_begin(); it != FW->parent_edge_end(); it++) {
+            DyckCallGraphNode * ParentNode = it->second;
+            fprintf(FOut, "\tf%p->f%p[style=\"dashed\",label=\"%s\"]\n", FW, ParentNode, "backedge"); // print parent edges
+        }
+
         auto CCIt = FW->common_call_begin();
         while (CCIt != FW->common_call_end()) {
             CommonCall *CC = *CCIt;

@@ -138,6 +138,8 @@ private:
     CallRecordVecTy CallRecords;
     /// @}
 
+    CallRecordVecTy Parents;
+
 public:
     explicit DyckCallGraphNode(Function *);
 
@@ -163,6 +165,7 @@ public:
 
     Call *getCall(Instruction *);
 
+    void addParentsNode(Call *C, DyckCallGraphNode *P) { Parents.emplace_back(C, P); }
     void addCalledFunction(Call *C, DyckCallGraphNode *N) { CallRecords.emplace_back(C, N); }
 
     std::set<CommonCall *>::const_iterator common_call_begin() const { return CommonCalls.begin(); }
@@ -196,6 +199,10 @@ public:
     CallRecordVecTy::const_iterator child_edge_begin() const { return CallRecords.begin(); }
 
     CallRecordVecTy::const_iterator child_edge_end() const { return CallRecords.end(); }
+
+    CallRecordVecTy::const_iterator  parent_edge_begin() const { return Parents.begin(); }
+
+    CallRecordVecTy::const_iterator  parent_edge_end() const { return Parents.end(); }
 };
 
 #endif // DYCKAA_DYCKCALLGRAPHNODE_H

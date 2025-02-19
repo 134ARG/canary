@@ -126,6 +126,7 @@ void AAAnalyzer::interProcedureAnalysis() {
             auto Callee = CC->getCalledFunction();
             auto CalleeN = DyckCG->getOrInsertFunction(Callee);
             FN->addCalledFunction(CC, CalleeN);
+            CalleeN->addParentsNode(CC, FN);
         }
 
         for (auto It = FN->pointer_call_begin(), E = FN->pointer_call_end(); It != E; ++It) {
@@ -133,6 +134,7 @@ void AAAnalyzer::interProcedureAnalysis() {
             for (auto *Callee: *PC) {
                 auto CalleeN = DyckCG->getOrInsertFunction(Callee);
                 FN->addCalledFunction(PC, CalleeN);
+                CalleeN->addParentsNode(PC, FN);
             }
         }
     }
